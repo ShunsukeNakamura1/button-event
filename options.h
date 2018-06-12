@@ -1,6 +1,7 @@
 #pragma once
 #include "DxLib.h"
 #include <vector>
+#include <string>
 
 struct XY {
 private:
@@ -20,23 +21,35 @@ private:
 	XY pos1;
 	XY pos2;
 	bool selected;
+	bool pushed;
 	bool clicked;
 	unsigned int white;
 	unsigned int red;
+	std::string message;
+	void printMessage();
 public:
-	Button(XY pos1, XY pos2);
+	Button(XY pos1, XY pos2, std::string message="");
 	void set(XY pos1, XY pos2);
 	XY getPos1();
 	XY getPos2();
+	int getX1();
+	int getX2();
+	int getY1();
+	int getY2();
 	bool isIn();
 	bool isSelected();
+	bool isPushed();
 	bool isClicked();
 	void disp();
 	void select();
 	void unselect();
 	void toggleSelect();
+	void push();
+	void unpush();
 	void click();
 	void unclick();
 };
 
-void mouseEvent(std::vector<Button> &buttons);
+bool selectButtonEvent(std::vector<Button> &buttons);
+
+bool clickButtonEvent(Button &button);

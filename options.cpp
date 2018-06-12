@@ -23,11 +23,13 @@ int XY::getY() {
 	return y;
 }
 
-Button::Button(XY pos1, XY pos2) {
+Button::Button(XY pos1, XY pos2, std::string message) {
 	this->pos1 = pos1;
 	this->pos2 = pos2;
+	this->message = message;
 	selected = false;
-	selected = false;
+	pushed = false;
+	clicked = false;
 	white = GetColor(255, 255, 255);
 	red = GetColor(255, 0, 0);
 }
@@ -40,6 +42,18 @@ XY Button::getPos1() {
 }
 XY Button::getPos2() {
 	return pos2;
+}
+int Button::getX1() {
+	return pos1.getX();
+}
+int Button::getX2() {
+	return pos2.getX();
+}
+int Button::getY1() {
+	return pos1.getY();
+}
+int Button::getY2() {
+	return pos2.getY();
 }
 bool Button::isIn() {
 	int mouse_x, mouse_y;
@@ -54,19 +68,29 @@ bool Button::isIn() {
 bool Button::isSelected() {
 	return selected;
 }
+bool Button::isPushed() {
+	return pushed;
+}
 bool Button::isClicked() {
 	return clicked;
 }
 void Button::disp() {
-	if (clicked) {
-		DrawBox(pos1.getX(), pos1.getY(), pos2.getX(), pos2.getY(), red, FALSE);
+	if (pushed) {
+		DrawBox(getX1(), getY1(), getX2(), getY2(), red, FALSE);
 	}
 	else if (selected) {
-		DrawBox(pos1.getX(), pos1.getY(), pos2.getX(), pos2.getY(), white, TRUE);
+		DrawBox(getX1(), getY1(), getX2(), getY2(), white, TRUE);
+	}
+	else if (clicked) {
+		DrawBox(getX1(), getY1(), getX2(), getY2(), red, TRUE);
 	}
 	else {
-		DrawBox(pos1.getX(), pos1.getY(), pos2.getX(), pos2.getY(), white, FALSE);
+		DrawBox(getX1(), getY1(), getX2(), getY2(), white, FALSE);
 	}
+	printMessage();
+}
+void Button::printMessage() {
+	DrawString(getX1(), getY1(), message.c_str(), white);
 }
 void Button::select() {
 	selected = true;
@@ -77,6 +101,12 @@ void Button::unselect() {
 void Button::toggleSelect() {
 	selected = !selected;
 }
+void Button::push() {
+	pushed = true;
+}
+void Button::unpush() {
+	pushed = false;
+}
 void Button::click() {
 	clicked = true;
 }
@@ -84,28 +114,61 @@ void Button::unclick() {
 	clicked = false;
 }
 
-void mouseEvent(std::vector<Button> &buttons) {
+//ñﬂÇËílÇÕèÛë‘Ç™ïœâªÇµÇΩÇ©Ç«Ç§Ç©
+bool selectButtonEvent(std::vector<Button> &buttons) {
 	static bool click = false;
+	bool isChanged = false;
 	if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0 && !click) {
 		for (int i = 0; i < (int)buttons.size(); i++) {
 			if (buttons[i].isIn()) {
-				buttons[i].click();
+				buttons[i].push();
+				isChanged = true;
 			}
 		}
 		click = true;
 	}
-	else if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0 && click) {
-
-	}
+	else if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0 && click) {}
 	else {
 		for (int i = 0; i < (int)buttons.size(); i++) {
-			if (buttons[i].isClicked()) {
+			if (buttons[i].isPushed()) {
 				if (buttons[i].isIn()) {
 					buttons[i].toggleSelect();
 				}
-				buttons[i].unclick();
+				buttons[i].unpush();
+				isChanged = true;
 			}
 		}
 		click = false;
 	}
+	return isChanged;
+}
+
+//ñﬂÇËílÇÕèÛë‘Ç™ïœâªÇµÇΩÇ©Ç«Ç§Ç©
+bool clickButtonEvent(Button &button) {
+	static bool click = false;
+	bool isChanged = false;
+
+	if (button.isClicked()) {
+		button.unclick();
+		isChanged = true;
+	}
+	if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0 && !click) {
+		if (button.isIn()) {
+			button.push();
+			isChanged = true;
+		}
+		click = true;
+	}
+	else if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0 && click) {}
+	else {
+		if (button.isPushed()) {
+			if (button.isIn()) {
+				button.click();
+			}
+			button.unpush();
+			isChanged = true;
+		}
+		click = false;
+	}
+	return isChanged;
 }
